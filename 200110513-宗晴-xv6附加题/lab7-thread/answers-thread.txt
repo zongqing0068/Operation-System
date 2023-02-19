@@ -1,0 +1,17 @@
+1、thread_switch只需要保存/恢复被调用者保存寄存器。为什么？
+    因为调用者寄存器被c编译器保存在thread_schedule的堆栈中。
+
+2、这将在uthread.c的第60行设置一个断点。断点可能(也可能不会)在运行uthread之前被触发。这为什么会发生?
+    因为若current_thread = next_thread，即将要运行的线程与当前线程相同，则不会执行该断点。
+
+3、为什么有2个线程的时候会缺失key，而不是1个线程?
+    因为insert函数如下：
+    static void insert(int key, int value, struct entry **p, struct entry *n)
+    {
+        struct entry *e = malloc(sizeof(struct entry));
+        e->key = key;
+        e->value = value;
+        e->next = n;  // 语句1
+        *p = e;  // 语句2
+    }
+    若两个线程在同一时间段内先执行语句1，之后这两个线程再一起执行语句2，那么先执行的那个线程会缺失key
